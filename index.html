@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataFlow · Сбор данных · AI-автоматизация · Дашборды</title>
+<meta name="description" content="Профессиональная разработка парсеров, обход блокировок, AI-автоматизация, дашборды, интеграции и инфраструктура.">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#08080f;color:#e0e0ee;overflow-x:hidden;line-height:1.6}a{color:#00f0ff;text-decoration:none;transition:color .3s}a:hover{color:#ff00e5}::selection{background:#00f0ff;color:#08080f}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#08080f}::-webkit-scrollbar-thumb{background:rgba(0,240,255,.3);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:rgba(0,240,255,.5)}
+
+canvas#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+.vignette{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,transparent 30%,rgba(8,8,15,.7) 80%,#08080f 100%);pointer-events:none;z-index:1}
+
+.content{position:relative;z-index:2}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;background:rgba(8,8,15,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,240,255,.08);transition:transform .3s}nav.scrolled{transform:translateY(-100%)}nav .logo{font-size:18px;font-weight:700;background:linear-gradient(135deg,#00f0ff,#ff00e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}nav .nav-links{display:flex;gap:24px;list-style:none}nav .nav-links a{font-size:14px;color:rgba(255,255,255,.6);transition:color .3s;position:relative}nav .nav-links a:hover{color:#00f0ff}nav .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:#00f0ff;transition:width .3s}nav .nav-links a:hover::after{width:100%}.mobile-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}.mobile-toggle span{width:24px;height:2px;background:#00f0ff;transition:.3s;border-radius:2px}.mobile-toggle.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}.mobile-toggle.active span:nth-child(2){opacity:0}.mobile-toggle.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+
+section{padding:100px 24px;max-width:1200px;margin:0 auto}section:first-of-type{padding-top:140px}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px 24px 80px;position:relative}.hero h1{font-size:clamp(32px,6vw,68px);font-weight:800;line-height:1.1;margin-bottom:24px;letter-spacing:-1px}.hero h1 .gradient-text{background:linear-gradient(135deg,#00f0ff 0%,#7b2ff7 50%,#ff00e5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.hero .subtitle{font-size:clamp(16px,2vw,22px);color:rgba(255,255,255,.55);max-width:700px;margin:0 auto 40px;line-height:1.7}.hero .tags{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:48px}.hero .tags span{padding:6px 16px;border:1px solid rgba(0,240,255,.2);border-radius:20px;font-size:13px;color:rgba(255,255,255,.6);background:rgba(0,240,255,.05);backdrop-filter:blur(8px)}.hero-actions{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s;border:none;font-family:inherit}.btn-primary{background:linear-gradient(135deg,#00f0ff,#7b2ff7);color:#08080f;box-shadow:0 0 30px rgba(0,240,255,.25)}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(0,240,255,.35)}.btn-secondary{background:rgba(255,255,255,.06);border:1px solid rgba(0,240,255,.2);color:#00f0ff;backdrop-filter:blur(8px)}.btn-secondary:hover{background:rgba(0,240,255,.1);border-color:#00f0ff;transform:translateY(-2px)}.hero .scroll-indicator{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);animation:bounce 2s infinite;opacity:.4}.hero .scroll-indicator svg{width:24px;height:24px;stroke:#00f0ff}@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+.section-header{text-align:center;margin-bottom:64px}.section-header h2{font-size:clamp(28px,4vw,44px);font-weight:700;margin-bottom:16px;letter-spacing:-.5px}.section-header h2 span{color:#00f0ff}.section-header p{color:rgba(255,255,255,.5);max-width:600px;margin:0 auto;font-size:17px}
+
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}@media(max-width:768px){.about-grid{grid-template-columns:1fr}}.about-text p{color:rgba(255,255,255,.65);margin-bottom:20px;font-size:17px}.about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.about-stats .stat{padding:20px;background:rgba(255,255,255,.03);border:1px solid rgba(0,240,255,.08);border-radius:14px;text-align:center;backdrop-filter:blur(8px)}.about-stats .stat .num{font-size:28px;font-weight:700;color:#00f0ff}.about-stats .stat .label{font-size:13px;color:rgba(255,255,255,.5);margin-top:4px}
+
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}@media(max-width:1024px){.services-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.services-grid{grid-template-columns:1fr}}.service-card{padding:32px 28px;background:rgba(255,255,255,.025);border:1px solid rgba(0,240,255,.08);border-radius:16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:all .4s;position:relative;overflow:hidden}.service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00f0ff,transparent);opacity:0;transition:opacity .4s}.service-card:hover::before{opacity:1}.service-card:hover{transform:translateY(-4px);border-color:rgba(0,240,255,.2);box-shadow:0 8px 40px rgba(0,240,255,.08)}.service-card .icon{font-size:32px;margin-bottom:16px;display:block}.service-card h3{font-size:18px;font-weight:600;margin-bottom:10px}.service-card p{font-size:14px;color:rgba(255,255,255,.55);line-height:1.7}.service-card .tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.service-card .tag-list span{padding:3px 10px;border-radius:8px;font-size:11px;background:rgba(0,240,255,.08);color:rgba(0,240,255,.7);border:1px solid rgba(0,240,255,.1)}
+
+.process-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;position:relative}@media(max-width:900px){.process-steps{grid-template-columns:repeat(2,1fr);gap:16px}}@media(max-width:500px){.process-steps{grid-template-columns:1fr}}.process-steps::before{content:'';position:absolute;top:36px;left:60px;right:60px;height:1px;background:linear-gradient(90deg,#00f0ff,transparent);display:none}@media(min-width:901px){.process-steps::before{display:block}}.process-step{text-align:center;padding:24px 16px;background:rgba(255,255,255,.025);border:1px solid rgba(0,240,255,.08);border-radius:14px;backdrop-filter:blur(8px);transition:.3s;position:relative}.process-step:hover{border-color:rgba(0,240,255,.2);transform:translateY(-2px)}.process-step .step-num{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00f0ff,#7b2ff7);color:#08080f;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;position:relative;z-index:1}.process-step h4{font-size:15px;font-weight:600;margin-bottom:6px}.process-step p{font-size:13px;color:rgba(255,255,255,.5);line-height:1.6}
+
+.tech-cloud{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}.tech-cloud .tech-item{padding:10px 22px;border:1px solid rgba(0,240,255,.12);border-radius:10px;font-size:14px;color:rgba(255,255,255,.7);background:rgba(0,240,255,.04);transition:all .3s;backdrop-filter:blur(4px)}.tech-cloud .tech-item:hover{border-color:#00f0ff;color:#00f0ff;box-shadow:0 0 20px rgba(0,240,255,.12);transform:translateY(-2px)}.tech-category{margin-bottom:40px}.tech-category:last-child{margin-bottom:0}.tech-category h3{text-align:center;font-size:14px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:16px}
+
+.contact-section{text-align:center;padding-bottom:120px}.contact-grid{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:48px}.contact-card{padding:32px 40px;background:rgba(255,255,255,.03);border:1px solid rgba(0,240,255,.1);border-radius:16px;backdrop-filter:blur(12px);min-width:200px;transition:all .3s;text-align:center}.contact-card:hover{transform:translateY(-4px);border-color:#00f0ff;box-shadow:0 8px 40px rgba(0,240,255,.1)}.contact-card .contact-icon{font-size:28px;margin-bottom:10px;display:block}.contact-card .contact-label{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:8px}.contact-card .contact-value{font-size:17px;font-weight:500;color:#00f0ff}.contact-card .contact-value a{color:inherit}
+
+footer{text-align:center;padding:32px 24px;border-top:1px solid rgba(0,240,255,.06);font-size:13px;color:rgba(255,255,255,.3);position:relative;z-index:2}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}.reveal.visible{opacity:1;transform:translateY(0)}.reveal-delay-1{transition-delay:.1s}.reveal-delay-2{transition-delay:.2s}.reveal-delay-3{transition-delay:.3s}.reveal-delay-4{transition-delay:.4s}
+
+@media(max-width:640px){nav{padding:12px 16px}nav.nav-links{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(8,8,15,.95);backdrop-filter:blur(24px);flex-direction:column;align-items:center;justify-content:center;gap:32px;z-index:99}nav .nav-links.open{display:flex}nav .nav-links a{font-size:20px}.mobile-toggle{display:flex;z-index:100}section{padding:60px 16px}.hero{padding:100px 16px 60px;min-height:auto}.about-stats{grid-template-columns:1fr}.contact-card{padding:24px 28px;min-width:140px;flex:1}}
+
+.glow-line{width:60px;height:2px;background:linear-gradient(90deg,#00f0ff,#ff00e5);margin:0 auto 20px;border-radius:2px}
+
+/* cyberpunk overlay effect */
+.cyber-grid-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-image:
+    linear-gradient(rgba(0,240,255,.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,240,255,.02) 1px,transparent 1px);
+background-size:60px 60px;pointer-events:none;z-index:1}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="cyber-grid-overlay"></div>
+<div class="vignette"></div>
+
+<div class="content">
+
+<nav>
+<div class="logo">✦ Data<span style="color:#ff00e5">Flow</span></div>
+<ul class="nav-links" id="navLinks">
+<li><a href="#hero">Главная</a></li>
+<li><a href="#about">О нас</a></li>
+<li><a href="#services">Услуги</a></li>
+<li><a href="#process">Процесс</a></li>
+<li><a href="#tech">Технологии</a></li>
+<li><a href="#contact">Контакты</a></li>
+</ul>
+<button class="mobile-toggle" id="mobileToggle" aria-label="Меню"><span></span><span></span><span></span></button>
+</nav>
+
+<section id="hero" class="hero">
+<h1>
+<span class="gradient-text">Сбор и обработка данных.</span><br>
+<span class="gradient-text">AI-автоматизация.</span><br>
+<span class="gradient-text">Дашборды и аналитика.</span>
+</h1>
+<p class="subtitle">
+Разрабатываем парсеры любой сложности с обходом блокировок,<br>
+строим дашборды, внедряем AI, интегрируем с любыми системами.
+</p>
+<div class="tags">
+<span>Go · Python · NodeJS · TypeScript · PHP</span>
+<span>Парсинг и краулинг · Обход защиты</span>
+<span>AI · Дашборды · Инфраструктура</span>
+</div>
+<div class="hero-actions">
+<a href="#contact" class="btn btn-primary">Связаться</a>
+<a href="#services" class="btn btn-secondary">Услуги ↓</a>
+</div>
+<div class="scroll-indicator">
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+</div>
+</section>
+
+<section id="about">
+<div class="section-header reveal">
+<h2><span>О</span> нас</h2>
+<div class="glow-line"></div>
+<p>Разрабатываем решения для сбора, обработки и анализа данных</p>
+</div>
+<div class="about-grid">
+<div class="about-text reveal">
+<p>
+Специализируемся на сборе данных с любых веб-сайтов и площадок,
+включая ресурсы со сложной защитой и блокировками. Разрабатываем
+устойчивые парсеры на Go, Python, NodeJS и TypeScript.
+</p>
+<p>
+Помимо сбора данных, занимаемся интеграциями с мессенджерами,
+базами данных, Google Таблицами, Excel/CSV экспортом,
+построением дашбордов, а также внедрением AI-систем
+(LLM, RAG, семантический поиск, классификация).
+</p>
+<p>
+Предоставляем полный цикл: от идеи до развертывания на сервере
+клиента и долгосрочной поддержки работоспособности.
+Примеры проектов: парсеры маркетплейсов с обходом защиты,
+Telegram-боты, дашборды для аналитики, RAG-системы.
+</p>
+</div>
+<div class="about-stats reveal reveal-delay-2">
+<div class="stat">
+<div class="num">100+</div>
+<div class="label">Проектов</div>
+</div>
+<div class="stat">
+<div class="num">10+</div>
+<div class="label">Лет опыта</div>
+</div>
+<div class="stat">
+<div class="num">100%</div>
+<div class="label">Поддержка</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="services">
+<div class="section-header reveal">
+<h2><span>Услуги</span></h2>
+<div class="glow-line"></div>
+<p>Что мы можем для вас сделать</p>
+</div>
+
+<div class="services-grid">
+
+<div class="service-card reveal">
+<span class="icon">🌐</span>
+<h3>Парсинг и краулинг</h3>
+<p>Сбор данных с любых сайтов и площадок. Работа с API, пагинация, обход по категориям и ссылкам. Переобход по расписанию с автоматическим обновлением данных.</p>
+<div class="tag-list"><span>API</span><span>Cron</span><span>CSV</span></div>
+</div>
+
+<div class="service-card reveal reveal-delay-1">
+<span class="icon">🛡️</span>
+<h3>Обход защиты</h3>
+<p>Cloudflare, антибот-системы, browser fingerprinting, rate limiting. Используем Selenium, Playwright, headless-браузеры, ротацию прокси и тайминги.</p>
+<div class="tag-list"><span>Selenium</span><span>Playwright</span><span>Прокси</span><span>FlareSolverr</span></div>
+</div>
+
+<div class="service-card reveal reveal-delay-2">
+<span class="icon">📦</span>
+<h3>Обработка и хранение</h3>
+<p>Очистка, дедубликация, агрегация и статистика по данным. Выгрузка в Excel, Google Sheets, базы данных. Подготовка данных для дальнейшего анализа.</p>
+<div class="tag-list"><span>Excel</span><span>Google Sheets</span><span>PostgreSQL</span><span>MongoDB</span></div>
+</div>
+
+<div class="service-card reveal">
+<span class="icon">🔗</span>
+<h3>Интеграции</h3>
+<p>Подключение собранных данных к внешним системам: Telegram-боты, Email-рассылки, API-интеграции с CRM и ERP, вебхуки.</p>
+<div class="tag-list"><span>Telegram</span><span>Max</span><span>Email</span><span>CRM/ERP</span><span>API</span><span>CSV</span></div>
+</div>
+
+<div class="service-card reveal reveal-delay-1">
+<span class="icon">🧠</span>
+<h3>AI-автоматизация</h3>
+<p>Извлечение структурированных данных из текста, классификация и категоризация, семантический поиск, RAG-системы на базе собранной информации.</p>
+<div class="tag-list"><span>OpenAI</span><span>DeepSeek</span><span>OpenRouter</span><span>YandexGPT</span><span>YandexSpeechKit</span></div>
+</div>
+
+<div class="service-card reveal reveal-delay-2">
+<span class="icon">☁️</span>
+<h3>Инфраструктура</h3>
+<p>Развертывание парсеров на серверах, Docker-контейнеризация, настройка прокси, мониторинг работоспособности, алерты и абонентское обслуживание.</p>
+<div class="tag-list"><span>Docker</span><span>Linux</span><span>Мониторинг</span><span>24/7</span><span>systemd</span></div>
+</div>
+
+<div class="service-card reveal">
+<span class="icon">📊</span>
+<h3>Дашборды и аналитика</h3>
+<p>Визуализация собранных данных: от базовых отчётов до сложных дашбордов с фильтрами, обновлением в реальном времени и уведомлениями.</p>
+<div class="tag-list"><span>Метрики</span><span>Фильтры</span><span>Real-time</span><span>Алерты</span></div>
+</div>
+
+</div>
+</section>
+
+<section id="process">
+<div class="section-header reveal">
+<h2>Как мы <span>работаем</span></h2>
+<div class="glow-line"></div>
+<p>Полный цикл разработки под ключ</p>
+</div>
+
+<div class="process-steps">
+
+<div class="process-step reveal">
+<div class="step-num">1</div>
+<h4>Анализ</h4>
+<p>Изучение сайта, защитных механизмов, структуры данных, составление ТЗ</p>
+</div>
+
+<div class="process-step reveal reveal-delay-1">
+<div class="step-num">2</div>
+<h4>Разработка</h4>
+<p>Написание парсера с обходом блокировок, тестирование на реальных данных</p>
+</div>
+
+<div class="process-step reveal reveal-delay-2">
+<div class="step-num">3</div>
+<h4>AI-интеграция</h4>
+<p>Подключение LLM, построение RAG, настройка анализа и семантического поиска</p>
+</div>
+
+<div class="process-step reveal reveal-delay-3">
+<div class="step-num">4</div>
+<h4>Развертывание</h4>
+<p>Деплой на сервер клиента, настройка мониторинга, алертов, автозапуска</p>
+</div>
+
+<div class="process-step reveal reveal-delay-4">
+<div class="step-num">5</div>
+<h4>Поддержка</h4>
+<p>Долгосрочное сопровождение, адаптация к изменениям, алерты 24/7</p>
+</div>
+
+</div>
+</section>
+
+<section id="tech">
+<div class="section-header reveal">
+<h2>Технологии и <span>инструменты</span></h2>
+<div class="glow-line"></div>
+<p>Чем мы пользуемся в работе</p>
+</div>
+
+<div class="tech-category reveal">
+<h3>Языки программирования</h3>
+<div class="tech-cloud">
+<span class="tech-item">Go</span>
+<span class="tech-item">Python</span>
+<span class="tech-item">NodeJS</span>
+<span class="tech-item">TypeScript</span>
+<span class="tech-item">PHP</span>
+</div>
+</div>
+
+<div class="tech-category reveal">
+<h3>Парсинг и автоматизация</h3>
+<div class="tech-cloud">
+<span class="tech-item">Selenium</span>
+<span class="tech-item">chromedp</span>
+<span class="tech-item">Puppeteer</span>
+<span class="tech-item">Playwright</span>
+<span class="tech-item">xvfb</span>
+<span class="tech-item">FlareSolverr</span>
+</div>
+</div>
+
+<div class="tech-category reveal">
+<h3>AI и данные</h3>
+<div class="tech-cloud">
+<span class="tech-item">OpenAI API</span>
+<span class="tech-item">DeepSeek</span>
+<span class="tech-item">OpenRouter</span>
+<span class="tech-item">YandexGPT</span>
+<span class="tech-item">YandexSpeechKit</span>
+</div>
+</div>
+
+<div class="tech-category reveal">
+<h3>Инфраструктура</h3>
+<div class="tech-cloud">
+<span class="tech-item">Docker</span>
+<span class="tech-item">Linux</span>
+<span class="tech-item">Nginx</span>
+<span class="tech-item">PostgreSQL</span>
+<span class="tech-item">MongoDB</span>
+<span class="tech-item">Redis</span>
+<span class="tech-item">Prometheus</span>
+<span class="tech-item">systemd</span>
+</div>
+</div>
+</section>
+
+<section id="contact" class="contact-section">
+<div class="section-header reveal">
+<h2>Свяжитесь с <span>нами</span></h2>
+<div class="glow-line"></div>
+<p>Обсудим ваш проект — пишите в Telegram, звоните или на почту</p>
+</div>
+
+<div class="contact-grid">
+<div class="contact-card reveal">
+<span class="contact-icon">✈️</span>
+<div class="contact-label">Telegram</div>
+<div class="contact-value"><a href="https://t.me/vmaximali">@vmaximali</a></div>
+</div>
+<div class="contact-card reveal reveal-delay-1">
+<span class="contact-icon">📞</span>
+<div class="contact-label">Телефон</div>
+<div class="contact-value"><a href="tel:+79198967939">+7 (919) 896-79-39</a></div>
+</div>
+<div class="contact-card reveal reveal-delay-2">
+<span class="contact-icon">✉️</span>
+<div class="contact-label">Email</div>
+<div class="contact-value"><a href="mailto:vmaximal@yandex.ru">vmaximal@yandex.ru</a></div>
+</div>
+</div>
+</section>
+
+<footer>
+<span>✦</span> 2026 · DataFlow · Сбор, обработка и аналитика данных
+</footer>
+
+</div>
+
+<script>
+(function() {
+
+// Canvas animation
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+W = canvas.width = window.innerWidth;
+H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+class Particle {
+constructor() { this.reset(); }
+reset() {
+this.x = Math.random() * W;
+this.y = Math.random() * H;
+this.vx = (Math.random() - 0.5) * 0.3;
+this.vy = (Math.random() - 0.5) * 0.3;
+this.size = Math.random() * 2 + 0.5;
+this.alpha = Math.random() * 0.5 + 0.1;
+this.pulse = Math.random() * Math.PI * 2;
+}
+update() {
+this.x += this.vx;
+this.y += this.vy;
+this.pulse += 0.02;
+if (this.x < 0 || this.x > W) { this.vx *= -1; }
+if (this.y < 0 || this.y > H) { this.vy *= -1; }
+}
+draw() {
+const a = this.alpha * (0.7 + 0.3 * Math.sin(this.pulse));
+ctx.beginPath();
+ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+ctx.fillStyle = `rgba(0, 240, 255, ${a})`;
+ctx.fill();
+}
+}
+
+const particles = [];
+for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+let time = 0;
+
+function drawGrid() {
+const spacing = 50 + Math.sin(time * 0.1) * 5;
+ctx.strokeStyle = 'rgba(0, 240, 255, 0.03)';
+ctx.lineWidth = 1;
+
+const cols = Math.floor(W / spacing) + 2;
+const rows = Math.floor(H / spacing) + 2;
+const offsetX = (time * 0.2) % spacing;
+const offsetY = (time * 0.15) % spacing;
+
+ctx.beginPath();
+for (let i = 0; i < cols; i++) {
+const x = i * spacing + offsetX;
+if (x > W + spacing) continue;
+ctx.moveTo(x, 0);
+ctx.lineTo(x, H);
+}
+for (let i = 0; i < rows; i++) {
+const y = i * spacing + offsetY;
+if (y > H + spacing) continue;
+ctx.moveTo(0, y);
+ctx.lineTo(W, y);
+}
+ctx.stroke();
+
+// second grid layer, slightly offset, different color
+ctx.strokeStyle = 'rgba(255, 0, 229, 0.015)';
+ctx.beginPath();
+for (let i = 0; i < cols; i++) {
+const x = i * spacing + 25 + offsetX * 0.5;
+if (x > W + spacing) continue;
+ctx.moveTo(x, 0);
+ctx.lineTo(x, H);
+}
+for (let i = 0; i < rows; i++) {
+const y = i * spacing + 25 + offsetY * 0.5;
+if (y > H + spacing) continue;
+ctx.moveTo(0, y);
+ctx.lineTo(W, y);
+}
+ctx.stroke();
+}
+
+function drawConnections() {
+for (let i = 0; i < particles.length; i++) {
+for (let j = i + 1; j < particles.length; j++) {
+const dx = particles[i].x - particles[j].x;
+const dy = particles[i].y - particles[j].y;
+const dist = Math.sqrt(dx * dx + dy * dy);
+if (dist < 140) {
+const a = (1 - dist / 140) * 0.06;
+ctx.beginPath();
+ctx.moveTo(particles[i].x, particles[i].y);
+ctx.lineTo(particles[j].x, particles[j].y);
+ctx.strokeStyle = `rgba(0, 240, 255, ${a})`;
+ctx.lineWidth = 0.5;
+ctx.stroke();
+}
+}
+}
+}
+
+function animate() {
+ctx.clearRect(0, 0, W, H);
+time++;
+drawGrid();
+particles.forEach(p => { p.update(); p.draw(); });
+drawConnections();
+requestAnimationFrame(animate);
+}
+
+animate();
+
+// Navigation hide on scroll
+let lastScroll = 0;
+const nav = document.querySelector('nav');
+
+window.addEventListener('scroll', function() {
+const currentScroll = window.pageYOffset;
+if (currentScroll > 100 && currentScroll > lastScroll) {
+nav.classList.add('scrolled');
+} else {
+nav.classList.remove('scrolled');
+}
+lastScroll = currentScroll;
+});
+
+// Mobile toggle
+const mobileToggle = document.getElementById('mobileToggle');
+const navLinks = document.getElementById('navLinks');
+
+mobileToggle.addEventListener('click', function() {
+this.classList.toggle('active');
+navLinks.classList.toggle('open');
+});
+
+navLinks.querySelectorAll('a').forEach(link => {
+link.addEventListener('click', function() {
+mobileToggle.classList.remove('active');
+navLinks.classList.remove('open');
+});
+});
+
+// Intersection Observer for reveals
+const revealElements = document.querySelectorAll('.reveal');
+
+const observer = new IntersectionObserver((entries) => {
+entries.forEach(entry => {
+if (entry.isIntersecting) {
+entry.target.classList.add('visible');
+observer.unobserve(entry.target);
+}
+});
+}, {
+threshold: 0.1,
+rootMargin: '0px 0px -50px 0px'
+});
+
+revealElements.forEach(el => observer.observe(el));
+
+// Immediately show hero elements
+document.querySelectorAll('#hero .reveal').forEach(el => {
+el.classList.add('visible');
+});
+
+})();
+</script>
+</body>
+</html>
